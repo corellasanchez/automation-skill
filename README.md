@@ -107,6 +107,33 @@ python run_tests.py --headed
 
 ---
 
+## Using with Claude Code
+
+This repository includes native guidelines and agent skill definitions configured specifically for **Claude Code** (via `CLAUDE.md` and `.claude/skills/web-test-runner/SKILL.md`).
+
+### How to Trigger in Claude Code
+When working in Claude Code, simply prompt:
+```text
+run tests
+```
+
+Claude Code will automatically:
+1. Recognize the instructions defined in `CLAUDE.md`.
+2. Launch the automated test runner in the terminal:
+   ```bash
+   python run_tests.py
+   ```
+3. Leverage DOM fingerprint caching to reuse previously discovered locators without spending redundant LLM tokens.
+4. Provide a concise summary of the pass/fail results along with a direct link to the newly generated PDF report at `reports/latest_report.pdf`.
+
+### Useful Prompts in Claude Code
+- **Run all tests**: `run tests`
+- **Run a specific test folder**: `run tests in test/happy path` *(triggers `python run_tests.py --dir "test/happy path"`)*
+- **Run in visible browser mode**: `run tests in headed mode` *(triggers `python run_tests.py --headed`)*
+- **Analyze test failures**: `check why the test failed in the latest report` *(Claude inspects the failure stack trace and failure screenshot in `reports/`)*
+
+---
+
 ## Test File Syntax Guide
 
 Tests are written in plain English, with one instruction per line in `.txt` files under `test/`. Comments starting with `#` or `//` and blank lines are ignored.
