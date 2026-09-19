@@ -1,0 +1,22 @@
+# Environment and Credentials
+.env
+.env.local
+*.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Test Runner Cache & Reports
+.test_cache/
+reports/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Scratch & temporary files
+scratch/

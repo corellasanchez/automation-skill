@@ -1,0 +1,17 @@
+navigate https://www.saucedemo.com/
+fill the user field with "${TEST_USER}"
+fill the password field with "${TEST_USER_PASSWORD}"
+take a screenshot
+click "Log In"
+add 3 diferent products to the cart
+click on the shopping cart at the top right corner
+take a screenshot
+remove one item from the shopping cart
+take a screenshot
+click on checkout
+fill the personal information
+take a screenshot
+click on continue
+take a screenshot 
+click on finish
+take a screenshot 
