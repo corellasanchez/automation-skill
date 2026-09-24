@@ -53,7 +53,8 @@ class WebTestExecutor:
         headless: bool = True,
         screenshots_dir: str = "reports/screenshots",
         fingerprint_manager: Optional[FingerprintManager] = None,
-        default_timeout_ms: int = 8000
+        default_timeout_ms: int = 8000,
+        clean_screenshots_on_start: bool = True
     ) -> None:
         """Initialize executor with browser configurations."""
         self.headless = headless
@@ -61,6 +62,19 @@ class WebTestExecutor:
         self.fingerprint_mgr = fingerprint_manager or FingerprintManager()
         self.default_timeout_ms = default_timeout_ms
         os.makedirs(self.screenshots_dir, exist_ok=True)
+        if clean_screenshots_on_start:
+            self.clean_screenshots()
+
+    def clean_screenshots(self) -> None:
+        """Remove previously captured screenshots so only the latest execution's screenshots are kept."""
+        if os.path.exists(self.screenshots_dir):
+            for file_name in os.listdir(self.screenshots_dir):
+                file_path = os.path.join(self.screenshots_dir, file_name)
+                if os.path.isfile(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
 
     def run_test(self, test_path: str, steps: List[ActionStep]) -> TestResult:
         """Execute a single test file from start to finish."""
@@ -283,7 +297,7 @@ class WebTestExecutor:
 
         except Exception as err:
             duration = round(time.time() - step_start, 2)
-            fail_img_name = f"fail_{test_name}_line_{step.line_number}_{int(time.time())}.png"
+            fail_img_name = f"fail_{test_name}_line_{step.line_number}.png"
             fail_img_path = os.path.join(self.screenshots_dir, fail_img_name)
             try:
                 page.screenshot(path=fail_img_path)

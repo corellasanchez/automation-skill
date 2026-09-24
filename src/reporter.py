@@ -17,26 +17,38 @@ from src.executor import TestResult
 
 
 class ReportGenerator:
-    """Generates execution reports in HTML and PDF formats."""
+    """Generates execution reports in HTML and PDF formats, retaining only the latest reports."""
 
     def __init__(self, output_dir: str = "reports") -> None:
         """Initialize reporter with output directory."""
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
+    def clean_old_reports(self) -> None:
+        """Remove older timestamped report files, keeping only latest reports."""
+        if not os.path.exists(self.output_dir):
+            return
+        for file_name in os.listdir(self.output_dir):
+            file_path = os.path.join(self.output_dir, file_name)
+            if os.path.isfile(file_path):
+                # Remove timestamped HTML or PDF reports if any exist
+                if (file_name.startswith("report_") and file_name.endswith(".html") and file_name != "latest_report.html") or \
+                   (file_name.startswith("test_report_") and file_name.endswith(".pdf") and file_name != "latest_report.pdf"):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+
     def generate_report(self, results: List[TestResult]) -> str:
-        """Generate HTML and PDF reports, returning the PDF file path."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        html_path = os.path.join(self.output_dir, f"report_{timestamp}.html")
-        pdf_path = os.path.join(self.output_dir, f"test_report_{timestamp}.pdf")
-        latest_pdf = os.path.join(self.output_dir, "latest_report.pdf")
+        """Generate HTML and PDF reports, saving only the latest report in each format."""
+        self.clean_old_reports()
+
         latest_html = os.path.join(self.output_dir, "latest_report.html")
+        latest_pdf = os.path.join(self.output_dir, "latest_report.pdf")
+        preview_path = os.path.join(self.output_dir, "report_preview.png")
 
-        # 1. Build and save HTML
+        # 1. Build and save latest HTML
         html_content = self._render_html(results)
-        with open(html_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
         with open(latest_html, "w", encoding="utf-8") as f:
             f.write(html_content)
 
@@ -44,11 +56,10 @@ class ReportGenerator:
         pdf_generated = False
         try:
             from PIL import Image
-            preview_path = os.path.join(self.output_dir, "report_preview.png")
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page(viewport={"width": 1280, "height": 800})
-                page.goto(f"file:///{os.path.abspath(html_path).replace(os.sep, '/')}", wait_until="load")
+                page.goto(f"file:///{os.path.abspath(latest_html).replace(os.sep, '/')}", wait_until="load")
                 try:
                     page.wait_for_load_state("networkidle", timeout=3000)
                 except Exception:
@@ -67,19 +78,16 @@ class ReportGenerator:
 
             if os.path.exists(preview_path):
                 img = Image.open(preview_path).convert("RGB")
-                img.save(pdf_path, "PDF", resolution=100.0)
+                img.save(latest_pdf, "PDF", resolution=100.0)
                 pdf_generated = True
         except Exception:
             pdf_generated = False
 
         # Fallback to ReportLab if Playwright PDF failed
         if not pdf_generated:
-            self._render_reportlab_pdf(results, pdf_path)
+            self._render_reportlab_pdf(results, latest_pdf)
 
-        # Copy to latest_report.pdf
-        shutil.copyfile(pdf_path, latest_pdf)
-
-        return pdf_path
+        return latest_pdf
 
     def _render_html(self, results: List[TestResult]) -> str:
         """Render standalone responsive HTML report."""

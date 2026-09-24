@@ -22,6 +22,7 @@ from src.env_loader import load_dotenv
 from src.executor import TestResult, WebTestExecutor
 from src.parser import TestFileParser
 from src.reporter import ReportGenerator
+from src.server import start_report_server
 
 # Load credentials from .env if present
 load_dotenv()
@@ -40,7 +41,13 @@ def discover_test_files(base_dir: str = "test") -> List[str]:
     return test_files
 
 
-def run_all(test_dir: str = "test", headless: bool = True) -> int:
+def run_all(
+    test_dir: str = "test",
+    headless: bool = True,
+    serve: bool = True,
+    port: int = 8080,
+    open_browser: bool = True
+) -> int:
     """Execute all discovered tests and generate the report."""
     print("=" * 65)
     print(">> WEB AUTOMATION TEST RUNNER")
@@ -91,6 +98,11 @@ def run_all(test_dir: str = "test", headless: bool = True) -> int:
     print(f"PDF Report saved at: {abs_pdf_path}")
     print("=" * 65)
 
+    if serve:
+        print("\n" + "-" * 65)
+        print(">> Starting local web server with latest_report.html...")
+        start_report_server(reports_dir="reports", port=port, open_browser=open_browser)
+
     return 1 if failed_count > 0 else 0
 
 
@@ -107,9 +119,45 @@ def main() -> None:
         action="store_true",
         help="Run browser in visible (headed) mode"
     )
+    parser.add_argument(
+        "--serve",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Run local web server with latest_report.html after tests finish (default: enabled)"
+    )
+    parser.add_argument(
+        "--serve-only",
+        action="store_true",
+        help="Run only the local report server without executing tests"
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=8080,
+        help="Preferred port for local web server (default: 8080)"
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open the default browser when the server starts"
+    )
     args = parser.parse_args()
 
-    exit_code = run_all(test_dir=args.dir, headless=not args.headed)
+    if args.serve_only:
+        start_report_server(
+            reports_dir="reports",
+            port=args.port,
+            open_browser=not args.no_browser
+        )
+        sys.exit(0)
+
+    exit_code = run_all(
+        test_dir=args.dir,
+        headless=not args.headed,
+        serve=args.serve,
+        port=args.port,
+        open_browser=not args.no_browser
+    )
     sys.exit(exit_code)
 
 

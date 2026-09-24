@@ -73,11 +73,12 @@ The test runner calculates a structural DOM fingerprint (SHA-256) of each visite
 - **Fingerprint Change (Page Modified)**: The runner detects the layout change, re-resolves the interactive elements, and updates the cache.
 
 ## Execution Reports
-Every test run generates:
-1. `reports/latest_report.pdf` (and timestamped `reports/test_report_<timestamp>.pdf`) containing:
+Every test run preserves strictly the latest execution artifacts:
+1. `reports/latest_report.pdf` containing:
    - Total tests, passed, failed, and execution timings
    - Detailed step-by-step breakdown (with credentials masked)
    - Embedded screenshots for any step failures
-2. `reports/latest_report.html` for quick browser viewing.
+2. `reports/latest_report.html` for interactive browser viewing with embedded screenshots.
+3. `reports/screenshots/` containing only the screenshots from the latest run.
 
 Always provide the user with the summary and a clickable link to `reports/latest_report.pdf` after running tests.

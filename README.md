@@ -159,7 +159,13 @@ After every test execution, reports are saved to `reports/`:
 - **`reports/latest_report.pdf`**: Continuous, high-fidelity PDF report suitable for sharing and review.
 - **`reports/latest_report.html`**: Interactive responsive web report with embedded base64 screenshots and status badges.
 - **`reports/report_preview.png`**: High-resolution PNG preview of the full execution results.
-- **`reports/screenshots/`**: Individual screenshot checkpoints and failure dumps.
+- **`reports/screenshots/`**: Individual screenshot checkpoints and failure dumps from the latest run.
+
+### Local Report Web Server
+A local HTTP server launches automatically upon test completion to serve `latest_report.html`:
+- Access the report at **`http://localhost:8080/`**.
+- To serve an existing report without re-running tests: `python run_tests.py --serve-only` or `python src/server.py`.
+- To skip launching the server: `python run_tests.py --no-serve`.
 
 ---
 
